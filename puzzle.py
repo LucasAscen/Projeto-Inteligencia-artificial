@@ -1,4 +1,5 @@
 
+import random
 #  Funções do 8-puzzle
 
 GOAL  = (1, 2, 3, 4, 5, 6, 7, 8, 0)
@@ -43,3 +44,31 @@ def extract(initial, sequence):
         r = apply_move(state, m)
         if r: sol.append(m); state = r
     return sol, state
+
+OPPOSITE = {
+    'U': 'D',
+    'D': 'U',
+    'L': 'R',
+    'R': 'L'
+}
+
+def random_solvable_state(steps=30):
+    state = GOAL
+    last_move = None
+
+    for _ in range(steps):
+        options = []
+
+        for move in MOVES:
+            if last_move and move == OPPOSITE[last_move]:
+                continue
+
+            new_state = apply_move(state, move)
+
+            if new_state:
+                options.append((move, new_state))
+
+        move, state = random.choice(options)
+        last_move = move
+
+    return state

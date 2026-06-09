@@ -1,8 +1,7 @@
-
 # Algoritmo Genérico para o 8-puzzle
 
 import random, time
-from puzzle import apply_sequence, manhattan, MOVES, solvable
+from puzzle import apply_sequence, manhattan, MOVES, solvable, extract, GOAL
 
 def fitness(ind, init): #funçao fitness,(individuo, estado inicial), quanto menor a nota melhor o individuo
     final, valid = apply_sequence(init, ind) #simula todos os movimentos 
@@ -26,7 +25,9 @@ def genetic_algorithm(init, pop_size=300, seq_len=120, max_gen=2000,#criando pop
             best_fit, best = fits[idx], pop[idx][:]
             
         # Se a distância de Manhattan for 0, encontramos a solução!
-        if best_fit == 0:
+        sol, final = extract(init, best)
+
+        if final == GOAL:
             return best, gen, best_fit
 
         # Elitismo: passa os melhores direto para a próxima geração
@@ -47,9 +48,14 @@ def genetic_algorithm(init, pop_size=300, seq_len=120, max_gen=2000,#criando pop
             p2 = pop[p2_idx]
 
             # --- Crossover dois pontos ---
-            a, b = sorted(random.sample(range(1, seq_len), 2))
-            c1 = p1[:a] + p2[a:b] + p1[b:]
-            c2 = p2[:a] + p1[a:b] + p2[b:]
+            # --- Crossover dois pontos com probabilidade pc ---
+            if random.random() < pc:
+                a, b = sorted(random.sample(range(1, seq_len), 2))
+                c1 = p1[:a] + p2[a:b] + p1[b:]
+                c2 = p2[:a] + p1[a:b] + p2[b:]
+            else:
+                c1 = p1[:]
+                c2 = p2[:]
 
             # --- Mutação ---
             for c in (c1, c2):

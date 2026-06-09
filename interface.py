@@ -1,12 +1,9 @@
-
 #  Testes  
-
+from genetico import genetic_algorithm
 import tkinter as tk
 from tkinter import ttk
 import threading, time
-from puzzle import manhattan, solvable, extract, apply_move, GOAL
-from genetico import genetic_algorithm
-
+from puzzle import manhattan, solvable, extract, apply_move, GOAL, random_solvable_state
 CORES = {
     1:("#0d2137","#4f9eff"), 2:("#1a0d37","#9b6fff"),
     3:("#370d1a","#ff4f7b"), 4:("#371d0d","#ff8c4f"),
@@ -18,7 +15,8 @@ PRESETS = {
     "Fácil":         ((1,2,3,4,5,6,7,0,8), dict(pop_size=150, seq_len=30,  max_gen=500,  pm=0.05)),
     "Médio":         ((1,2,3,4,0,6,7,5,8), dict(pop_size=200, seq_len=60,  max_gen=800,  pm=0.04)),
     "Difícil":       ((8,1,3,4,0,2,7,6,5), dict(pop_size=400, seq_len=150, max_gen=3000, pm=0.03)),
-    "Médio-Difícil": ((2,8,3,1,6,4,7,0,5), dict(pop_size=350, seq_len=120, max_gen=2000, pm=0.03)),
+    "Médio-Difícil": ((1,3,6,5,0,2,4,7,8), dict(pop_size=350, seq_len=120, max_gen=2000, pm=0.03)),
+    "Aleatório":     ("RANDOM", dict(pop_size=350, seq_len=120, max_gen=2000, pm=0.03, random_steps=25)),
 }
 
 class App:
@@ -123,7 +121,14 @@ class App:
     # ── Helpers 
     def load(self, name):
         self.pvar.set(name)
-        self.state, self.params = PRESETS[name]
+        estado, params = PRESETS[name]
+        self.params = params.copy()
+
+        if estado == "RANDOM":
+            passos = self.params.pop("random_steps", 25)
+            self.state = random_solvable_state(passos)
+        else:
+            self.state = estado
         self.sol = []
         self.slbl.config(text="")
         self.banim.config(state="disabled")
@@ -182,8 +187,25 @@ class App:
         self.sv["geracoes"].set(str(gen))
         self.sv["movimentos"].set(str(len(sol)))
         self.sv["tempo"].set(f"{elapsed:.2f}s")
+
+        sequencia = " ".join(sol)
+
+        print("\n--- RESULTADO DO TESTE ---")
+        print("Estado inicial:", self.state)
+        print("Solução encontrada:", "Sim" if ok else "Não")
+        print("Gerações:", gen)
+        print("Movimentos:", len(sol))
+        print("Sequência:", sequencia if sequencia else "Nenhuma")
+
+        if sol:
+            resumo = sequencia[:55] + ("..." if len(sequencia) > 55 else "")
+            self.slbl.config(text=f"seq: {resumo}")
+        else:
+            self.slbl.config(text="sem solução completa")
+
         self.bsolve.config(state="normal", text="▶  RESOLVER")
-        if sol: self.banim.config(state="normal")
+        if sol:
+            self.banim.config(state="normal")
 
     # ── Animar
 
