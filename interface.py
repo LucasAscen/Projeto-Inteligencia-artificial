@@ -156,9 +156,21 @@ class App:
         threading.Thread(target=self._solve_thread, daemon=True).start()
 
     def _solve_thread(self):
+
         t0 = time.time()
         best, gen, fit = genetic_algorithm(self.state, **self.params)
         elapsed = time.time() - t0
+        
+    # --- NOVA VALIDAÇÃO AQUI ---
+        if best is None:
+            # Avisa a interface que o processo terminou, mas sem solução (sol=[] e final==False)
+            self.sol = []
+            # Enviamos um aviso para a função de término atualizar os textos na tela
+            self.root.after(0, self._solve_done, gen, elapsed, [], False)
+            return # Interrompe a execução da Thread aqui mesmo, com segurança!
+        # ----------------------------
+    
+            # O código original só roda se o tabuleiro for solúvel (best NÃO for None)
         sol, final = extract(self.state, best)
         self.sol = sol
         self.root.after(0, self._solve_done, gen, elapsed, sol, final == GOAL)
